@@ -13,12 +13,20 @@ top_product = product_sales.idxmax()
 total_quantity_sales = data["Quantity"].sum()
 print(total_quantity_sales)
 
+report_data = [
+    ["Total Quantity Sold", total_quantity_sales],
+    ["Total Sales", total_sales],
+    ["Top Product", top_product],
+]
+
+for category, sales in category_sales.items():
+    report_data.append([category + " Sales", sales])
+
 report = pd.DataFrame(
-    [
-        ["Total Quantity Sold", total_quantity_sales],
-        ["Total Sales", total_sales],
-        ["Top Productt", top_product],
-    ],
+    report_data,
     columns=["Sales", "Values"]
 )
-report.to_excel("sales_report.xlsx", index=False)
+
+print(report)
+with pd.ExcelWriter("sales_report.xlsx") as writer:
+    report.to_excel(writer, sheet_name="Summary", index=False)
