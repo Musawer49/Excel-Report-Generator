@@ -3,19 +3,35 @@ from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.formatting.rule import DataBarRule
+import tkinter as tk
+from tkinter import filedialog
 
 # Read the input Excel file
-data = pd.read_excel("sales_data.xlsx")
-data.columns = data.columns.str.strip()
-print(data.columns.tolist())
+root = tk.Tk()
+root.withdraw()
 
-data["Data "] = pd.to_datetime(
+input_file = filedialog.askopenfilename(
+    title="Select Sales Excel File",
+    filetypes=[
+        ("Excel files", "*.xlsx *.xls"),
+        ("All files", "*.*")
+    ]
+)
+
+if not input_file:
+    print("No file selected. Program stopped.")
+    exit()
+
+data = pd.read_excel(input_file)
+data.columns = data.columns.str.strip()
+
+data["Data"] = pd.to_datetime(
     data["Data"],
     unit="D",
     origin="1899-12-30"
 )
 
-data.rename(columns={"Data ": "Date"}, inplace=True)
+data.rename(columns={"Data": "Date"}, inplace=True)
 
 # Calculate total sales for each row
 data["Total"] = data["Quantity"] * data["Price"]
