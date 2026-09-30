@@ -4,7 +4,7 @@ from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.formatting.rule import DataBarRule
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 # Read the input Excel file
 root = tk.Tk()
@@ -19,11 +19,39 @@ input_file = filedialog.askopenfilename(
 )
 
 if not input_file:
-    print("No file selected. Program stopped.")
+    messagebox.showinfo("Cancelled", "No file was selected.")
     exit()
 
-data = pd.read_excel(input_file)
-data.columns = data.columns.str.strip()
+try:
+    data = pd.read_excel(input_file)
+    data.columns = data.columns.str.strip()
+
+    required_columns = [
+        "Data",
+        "Product",
+        "Category",
+        "Quantity",
+        "Price"
+    ]
+
+    missing_columns = [
+        column for column in required_columns
+        if column not in data.columns
+    ]
+
+    if missing_columns:
+        messagebox.showerror(
+            "Invalid Excel File",
+            f"Missing columns: {', '.join(missing_columns)}"
+        )
+        exit()
+
+except Exception as error:
+    messagebox.showerror(
+        "Error",
+        f"Could not read the Excel file.\n\n{error}"
+    )
+    exit()
 
 data["Data"] = pd.to_datetime(
     data["Data"],
@@ -75,8 +103,24 @@ report = pd.DataFrame(
     columns=["Sales", "Values"]
 )
 
+# Create the Out-put location and filename
+output_file = filedialog.asksaveasfilename(
+    title="Save Sales Report",
+    defaultextension=".xlsx",
+    filetypes=[
+        ("Excel files", "*.xlsx"),
+        ("All files", "*.*")
+    ],
+    initialfile="sales_report.xlsx"
+)
+
+if not output_file:
+    messagebox.showinfo("Cancelled", "Report was not saved.")
+    exit()
+
 # Create the Excel report
-with pd.ExcelWriter("sales_report.xlsx", engine="openpyxl") as writer:
+with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
+    
     # Write all sheets
     report.to_excel(writer, sheet_name="Summary", index=False)
     category_report.to_excel(writer, sheet_name="Category Sales", index=False)
