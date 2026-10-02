@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import pandas as pd
@@ -393,26 +394,75 @@ def update_generate_button():
     else:
         generate_button.config(state="disabled")
 
+def open_report():
+    output_file = output_file_var.get()
+
+    if output_file and os.path.exists(output_file):
+        os.startfile(output_file)
+    else:
+        messagebox.showerror(
+            "Error",
+            "The report file could not be found."
+        )
+
 def generate_report():
     input_file = input_file_var.get()
     output_file = output_file_var.get()
 
     try:
         create_report(input_file, output_file)
+
+        status_label.config(
+            text="Report generated successfully!",
+            fg="#16803C"
+        )
+
+        open_report_button.config(state="normal")
+
         messagebox.showinfo(
             "Success",
             "Sales report generated successfully!"
         )
+
     except PermissionError:
+        status_label.config(
+            text="Please close the Excel report and try again.",
+            fg="#C62828"
+        )
+
         messagebox.showerror(
             "Permission Error",
             "Please close the Excel report if it is currently open."
         )
+
     except Exception as error:
+        status_label.config(
+            text="An error occurred.",
+            fg="#C62828"
+        )
+
         messagebox.showerror(
             "Error",
             str(error)
         )
+
+        open_report_button = tk.Button(
+            card,
+            text="Open Report",
+            font=("Segoe UI", 10, "bold"),
+            bg="#E8EEF5",
+            fg=primary_color,
+            activebackground="#DCE6F0",
+            activeforeground=primary_color,
+            relief="flat",
+            bd=0,
+            cursor="hand2",
+            padx=30,
+            pady=8,
+            state="disabled",
+            command=open_report
+    )
+    open_report_button.pack(pady=(0, 8))
 
 # =========================
 # GUI
