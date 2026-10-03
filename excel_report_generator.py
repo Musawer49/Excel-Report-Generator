@@ -6,6 +6,7 @@ from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.formatting.rule import DataBarRule
+from tkinter import ttk
 
 def create_report(input_file, output_file):
     # Read the selected Excel file
@@ -361,78 +362,72 @@ def create_report(input_file, output_file):
 def select_input_file():
     file_path = filedialog.askopenfilename(
         title="Select Sales Excel File",
-        filetypes=[
-            ("Excel files", "*.xlsx *.xls"),
-            ("All files", "*.*")
-        ]
+        filetypes=[("Excel files", "*.xlsx *.xls")]
     )
 
     if file_path:
         input_file_var.set(file_path)
         input_label.config(text=file_path, fg=text_color)
+
+        # Save the report beside the selected input file
+        output_file_var.set(
+            os.path.join(
+                os.path.dirname(file_path),
+                "sales_report.xlsx"
+            )
+        )
+
         update_generate_button()
 
-def select_output_file():
-    file_path = filedialog.asksaveasfilename(
-        title="Save Sales Report",
-        defaultextension=".xlsx",
-        initialfile="sales_report.xlsx",
-        filetypes=[
-            ("Excel files", "*.xlsx"),
-            ("All files", "*.*")
-        ]
-    )
-
-    if file_path:
-        output_file_var.set(file_path)
-        output_label.config(text=file_path, fg=text_color)
-        update_generate_button()
 
 def update_generate_button():
-    if input_file_var.get() and output_file_var.get():
+    if input_file_var.get():
         generate_button.config(state="normal")
     else:
         generate_button.config(state="disabled")
 
-def open_report():
-    output_file = output_file_var.get()
-
-    if output_file and os.path.exists(output_file):
-        os.startfile(output_file)
-    else:
-        messagebox.showerror(
-            "Error",
-            "The report file could not be found."
-        )
 
 def generate_report():
     input_file = input_file_var.get()
     output_file = output_file_var.get()
 
+    status_label.config(
+        text="Generating report...",
+        fg=primary_color
+    )
+    progress_bar.start(10)
+    root.update_idletasks()
+
     try:
         create_report(input_file, output_file)
+
+        progress_bar.stop()
+
+        progress_bar = ttk.Progreebar(
+            card,
+            mode="indeterminate",
+            length=400
+        )
 
         status_label.config(
             text="Report generated successfully!",
             fg="#16803C"
         )
 
-        open_report_button.config(state="normal")
-
         messagebox.showinfo(
             "Success",
-            "Sales report generated successfully!"
+            f"Report generated successfully!\\nSaved as: {output_file}"
         )
 
     except PermissionError:
         status_label.config(
-            text="Please close the Excel report and try again.",
+            text="Please close the report in Excel and try again.",
             fg="#C62828"
         )
 
         messagebox.showerror(
             "Permission Error",
-            "Please close the Excel report if it is currently open."
+            "Please close sales_report.xlsx if it is currently open."
         )
 
     except Exception as error:
@@ -446,31 +441,13 @@ def generate_report():
             str(error)
         )
 
-        open_report_button = tk.Button(
-            card,
-            text="Open Report",
-            font=("Segoe UI", 10, "bold"),
-            bg="#E8EEF5",
-            fg=primary_color,
-            activebackground="#DCE6F0",
-            activeforeground=primary_color,
-            relief="flat",
-            bd=0,
-            cursor="hand2",
-            padx=30,
-            pady=8,
-            state="disabled",
-            command=open_report
-    )
-    open_report_button.pack(pady=(0, 8))
-
 # =========================
 # GUI
 # =========================
 
 root = tk.Tk()
 root.title("Excel Report Generator")
-root.geometry("760x500")
+root.geometry("760x400")
 root.resizable(False, False)
 root.configure(bg="#F4F7FB")
 
@@ -494,7 +471,7 @@ card = tk.Frame(
     highlightbackground=border_color,
     highlightthickness=1
 )
-card.place(relx=0.5, rely=0.5, anchor="center", width=650, height=430)
+card.place(relx=0.5, rely=0.5, anchor="center", width=650, height=340)
 
 # ---------- Title ----------
 title_label = tk.Label(
@@ -504,7 +481,7 @@ title_label = tk.Label(
     bg=card_color,
     fg=primary_color
 )
-title_label.pack(pady=(30, 5))
+title_label.pack(pady=(25, 5))
 
 subtitle_label = tk.Label(
     card,
@@ -513,7 +490,7 @@ subtitle_label = tk.Label(
     bg=card_color,
     fg=secondary_text
 )
-subtitle_label.pack(pady=(0, 25))
+subtitle_label.pack(pady=(0, 20))
 
 # ---------- Input File ----------
 input_title = tk.Label(
@@ -531,7 +508,7 @@ input_frame = tk.Frame(
     highlightbackground=border_color,
     highlightthickness=1
 )
-input_frame.pack(fill="x", padx=55, pady=(5, 15))
+input_frame.pack(fill="x", padx=55, pady=(5, 25))
 
 input_label = tk.Label(
     input_frame,
@@ -560,79 +537,40 @@ input_button = tk.Button(
 )
 input_button.pack(side="right", padx=5, pady=5)
 
-# ---------- Output File ----------
-output_title = tk.Label(
-    card,
-    text="Output Report",
-    font=("Segoe UI", 10, "bold"),
-    bg=card_color,
-    fg=text_color
-)
-output_title.pack(anchor="w", padx=55)
-
-output_frame = tk.Frame(
-    card,
-    bg="#F8FAFC",
-    highlightbackground=border_color,
-    highlightthickness=1
-)
-output_frame.pack(fill="x", padx=55, pady=(5, 20))
-
-output_label = tk.Label(
-    output_frame,
-    text="No location selected",
-    font=("Segoe UI", 9),
-    bg="#F8FAFC",
-    fg=secondary_text,
-    anchor="w"
-)
-output_label.pack(side="left", fill="x", expand=True, padx=12, pady=10)
-
-output_button = tk.Button(
-    output_frame,
-    text="Browse",
-    font=("Segoe UI", 9, "bold"),
-    bg=primary_color,
-    fg="white",
-    activebackground=primary_hover,
-    activeforeground="white",
-    relief="flat",
-    bd=0,
-    cursor="hand2",
-    padx=15,
-    pady=7,
-    command=select_output_file
-)
-output_button.pack(side="right", padx=5, pady=5)
-
 # ---------- Generate Button ----------
+
 generate_button = tk.Button(
     card,
     text="Generate Report",
-    font=("Segoe UI", 11, "bold"),
+    command=generate_report,
     bg=primary_color,
     fg="white",
-    activebackground=primary_hover,
-    activeforeground="white",
-    disabledforeground="#DCE6F0",
+    font=("Segoe UI", 11, "bold"),
     relief="flat",
-    bd=0,
     cursor="hand2",
-    padx=35,
-    pady=10,
-    state="disabled",
-    command=generate_report
+    padx=20,
+    pady=10
 )
-generate_button.pack(pady=(0, 12))
 
-# ---------- Status ----------
+generate_button.pack(pady=(0, 15))
+
+generate_button.pack(pady=(0, 15))
+
+progress_bar = ttk.Progressbar(
+    card,
+    mode="indeterminate",
+    length=400
+)
+progress_bar.pack(pady=(0, 10))
+
 status_label = tk.Label(
     card,
-    text="Select an input file and output location to continue.",
+    text="Select an Excel file to generate your report.",
     font=("Segoe UI", 9),
     bg=card_color,
     fg=secondary_text
 )
 status_label.pack()
-
 root.mainloop()
+
+
