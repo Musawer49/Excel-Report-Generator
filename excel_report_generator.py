@@ -386,8 +386,9 @@ def update_generate_button():
     else:
         generate_button.config(state="disabled")
 
-
 def generate_report():
+    generate_button.config(state="disabled")
+
     input_file = input_file_var.get()
     output_file = output_file_var.get()
 
@@ -395,28 +396,20 @@ def generate_report():
         text="Generating report...",
         fg=primary_color
     )
-    progress_bar.start(10)
+
     root.update_idletasks()
 
     try:
         create_report(input_file, output_file)
 
-        progress_bar.stop()
-
-        progress_bar = ttk.Progreebar(
-            card,
-            mode="indeterminate",
-            length=400
-        )
-
         status_label.config(
             text="Report generated successfully!",
             fg="#16803C"
         )
-
+        generate_button.config(state="normal")
         messagebox.showinfo(
             "Success",
-            f"Report generated successfully!\\nSaved as: {output_file}"
+            f"Report generated successfully!\nSaved as: {output_file}"
         )
 
     except PermissionError:
@@ -424,7 +417,7 @@ def generate_report():
             text="Please close the report in Excel and try again.",
             fg="#C62828"
         )
-
+        generate_button.config(state="normal")
         messagebox.showerror(
             "Permission Error",
             "Please close sales_report.xlsx if it is currently open."
@@ -435,7 +428,7 @@ def generate_report():
             text="An error occurred.",
             fg="#C62828"
         )
-
+        generate_button.config(state="normal")
         messagebox.showerror(
             "Error",
             str(error)
@@ -551,18 +544,7 @@ generate_button = tk.Button(
     padx=20,
     pady=10
 )
-
 generate_button.pack(pady=(0, 15))
-
-generate_button.pack(pady=(0, 15))
-
-progress_bar = ttk.Progressbar(
-    card,
-    mode="indeterminate",
-    length=400
-)
-progress_bar.pack(pady=(0, 10))
-
 status_label = tk.Label(
     card,
     text="Select an Excel file to generate your report.",
@@ -572,5 +554,3 @@ status_label = tk.Label(
 )
 status_label.pack()
 root.mainloop()
-
-
