@@ -89,6 +89,7 @@ def create_report(input_file, output_file):
         output_file,
         engine="openpyxl"
     ) as writer:
+        
         # Write all sheets
         report.to_excel(
             writer,
@@ -132,9 +133,7 @@ def create_report(input_file, output_file):
             bottom=Side(style="thin")
         )
 
-        # =========================
         # SUMMARY SHEET
-        # =========================
         summary = writer.sheets["Summary"]
         summary.column_dimensions["A"].width = 25
         summary.column_dimensions["B"].width = 20
@@ -152,9 +151,7 @@ def create_report(input_file, output_file):
         summary["B2"].number_format = "#,##0"
         summary["B3"].number_format = "#,##0"
 
-        # =========================
         # CATEGORY SALES SHEET
-        # =========================
         category = writer.sheets["Category Sales"]
         category.column_dimensions["A"].width = 20
         category.column_dimensions["B"].width = 20
@@ -202,9 +199,7 @@ def create_report(input_file, output_file):
         category_chart.set_categories(category_names)
         category.add_chart(category_chart, "D2")
 
-        # =========================
         # PRODUCT SALES SHEET
-        # =========================
         product = writer.sheets["Product Sales"]
         product.column_dimensions["A"].width = 20
         product.column_dimensions["B"].width = 20
@@ -262,9 +257,7 @@ def create_report(input_file, output_file):
             )
         )
 
-        # =========================
         # MONTHLY SALES SHEET
-        # =========================
         monthly = writer.sheets["Monthly Sales"]
         monthly.column_dimensions["A"].width = 20
         monthly.column_dimensions["B"].width = 20
@@ -312,9 +305,7 @@ def create_report(input_file, output_file):
         monthly_chart.set_categories(monthly_names)
         monthly.add_chart(monthly_chart, "D2")
 
-        # =========================
         # RAW DATA SHEET
-        # =========================
         raw = writer.sheets["Raw Data"]
 
         for cell in raw[1]:
@@ -369,7 +360,6 @@ def select_input_file():
         input_file_var.set(file_path)
         input_label.config(text=file_path, fg=text_color)
 
-        # Save the report beside the selected input file
         output_file_var.set(
             os.path.join(
                 os.path.dirname(file_path),
@@ -434,10 +424,7 @@ def generate_report():
             str(error)
         )
 
-# =========================
 # GUI
-# =========================
-
 root = tk.Tk()
 root.title("Excel Report Generator")
 root.geometry("760x400")
@@ -447,17 +434,15 @@ root.configure(bg="#F4F7FB")
 input_file_var = tk.StringVar()
 output_file_var = tk.StringVar()
 
-# ---------- Colors ----------
-background_color = "#F4F7FB"
+# Colors
 card_color = "#FFFFFF"
 primary_color = "#1F4E78"
-primary_hover = "#163A5C"
+primary_hover = "#0B2D4D"
 text_color = "#1E293B"
 secondary_text = "#64748B"
 border_color = "#D9E2EC"
-disabled_color = "#6B7A8C"
 
-# ---------- Main Card ----------
+# Main Card 
 card = tk.Frame(
     root,
     bg=card_color,
@@ -466,7 +451,7 @@ card = tk.Frame(
 )
 card.place(relx=0.5, rely=0.5, anchor="center", width=650, height=340)
 
-# ---------- Title ----------
+# Title 
 title_label = tk.Label(
     card,
     text="Excel Report Generator",
@@ -485,7 +470,7 @@ subtitle_label = tk.Label(
 )
 subtitle_label.pack(pady=(0, 20))
 
-# ---------- Input File ----------
+# Input File 
 input_title = tk.Label(
     card,
     text="Input Excel File",
@@ -530,8 +515,7 @@ input_button = tk.Button(
 )
 input_button.pack(side="right", padx=5, pady=5)
 
-# ---------- Generate Button ----------
-
+# Generate Button 
 generate_button = tk.Button(
     card,
     text="Generate Report",
@@ -545,6 +529,16 @@ generate_button = tk.Button(
     pady=10
 )
 generate_button.pack(pady=(0, 15))
+
+def generate_hover(event):
+    generate_button.config(bg=primary_hover)
+
+def generate_leave(event):
+    generate_button.config(bg=primary_color)
+
+generate_button.bind("<Enter>", generate_hover)
+generate_button.bind("<Leave>", generate_leave)
+
 status_label = tk.Label(
     card,
     text="Select an Excel file to generate your report.",
